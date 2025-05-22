@@ -1,8 +1,8 @@
 // 获取封面
 export const getVideoCoverBase64 = ({
   source,
-  currentTime = 1,
-  timeout = 10000,
+  currentTime = 0.1, // 默认获取视频开始 0.1 秒的帧
+  timeout = 5000, // 减少超时时间，因为只获取部分数据
   maxSide = 512
 }: {
   source: string | File
@@ -13,7 +13,9 @@ export const getVideoCoverBase64 = ({
   return new Promise((resolve, reject) => {
     const video = document.createElement('video')
     video.setAttribute('crossOrigin', 'anonymous')
-    video.setAttribute('preload', 'auto')
+    video.setAttribute('preload', 'metadata') // 只预加载元数据
+    video.setAttribute('playsinline', 'true') // 添加 playsinline 属性
+    video.muted = true // 静音播放
 
     // 定义清理函数
     let cleanup = () => {
@@ -47,52 +49,52 @@ export const getVideoCoverBase64 = ({
     // 设置超时处理
     const timeoutId = setTimeout(() => {
       cleanup()
-      // 超时后尝试使用阿里云OSS的视频处理功能（仅当source是URL时）
-      if (typeof source === 'string') {
-        // fallbackToAliyunOSS(source, resolve, reject)
-      } else {
-        reject(new Error('获取视频封面超时'))
-      }
+      reject('获取视频封面超时')
     }, timeout)
 
     const handleError = (e: any) => {
-      // console.log('视频加载错误', e)
       cleanup()
-      // 错误后尝试使用阿里云OSS的视频处理功能（仅当source是URL时）
-      if (typeof source === 'string') {
-        // fallbackToAliyunOSS(source, resolve, reject)
-      } else {
-        reject(new Error('加载视频失败'))
-      }
+      reject('加载视频失败')
     }
 
     // 处理视频元数据加载完成
     const handleLoadedMetadata = () => {
-      // console.log('loadedmetadata')
-      // 如果视频时长大于0，直接尝试获取封面
-      if (video.duration > 0) {
+      try {
         // 设置视频时间点
-        video.currentTime = Math.min(currentTime, video.duration || 1)
+        video.currentTime = Math.min(currentTime, video.duration || 0.1)
+      } catch (error) {
+        console.error('设置视频时间点失败:', error)
+        cleanup()
+        reject('设置视频时间点失败')
       }
     }
 
     // 处理视频数据加载完成
     const handleLoadedData = () => {
-      // console.log('loadeddata')
-      // 设置视频时间点
-      video.currentTime = Math.min(currentTime, video.duration || 1)
+      try {
+        // 设置视频时间点
+        video.currentTime = Math.min(currentTime, video.duration || 0.1)
+      } catch (error) {
+        console.error('设置视频时间点失败:', error)
+        cleanup()
+        reject('设置视频时间点失败')
+      }
     }
 
     // 处理视频可以播放
     const handleCanPlay = () => {
-      // console.log('canplay')
-      // 设置视频时间点
-      video.currentTime = Math.min(currentTime, video.duration || 1)
+      try {
+        // 设置视频时间点
+        video.currentTime = Math.min(currentTime, video.duration || 0.1)
+      } catch (error) {
+        console.error('设置视频时间点失败:', error)
+        cleanup()
+        reject('设置视频时间点失败')
+      }
     }
 
     // 处理视频跳转完成
     const handleSeeked = () => {
-      // console.log('seeked')
       captureFrame()
     }
 
@@ -108,7 +110,7 @@ export const getVideoCoverBase64 = ({
         const ctx = canvas.getContext('2d')
         if (ctx) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const dataURL = canvas.toDataURL('image/jpeg')
+          const dataURL = canvas.toDataURL('image/jpeg', 0.8) // 降低图片质量以减小大小
           cleanup()
           resolve({
             width,
@@ -117,21 +119,12 @@ export const getVideoCoverBase64 = ({
           })
         } else {
           cleanup()
-          // 无法获取画布上下文时尝试使用阿里云OSS的视频处理功能（仅当source是URL时）
-          if (typeof source === 'string') {
-            // fallbackToAliyunOSS(source, resolve, reject)
-          } else {
-            reject(new Error('无法获取画布上下文'))
-          }
+          reject('无法获取画布上下文')
         }
       } catch (error) {
+        console.error('捕获视频帧失败:', error)
         cleanup()
-        // 捕获帧出错时尝试使用阿里云OSS的视频处理功能（仅当source是URL时）
-        if (typeof source === 'string') {
-          // fallbackToAliyunOSS(source, resolve, reject)
-        } else {
-          reject(error)
-        }
+        reject(error)
       }
     }
 

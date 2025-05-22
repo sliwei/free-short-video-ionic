@@ -18,5 +18,5 @@ export default function Images({ url }: ImagesProps) {
     })
   }, [])
 
-  return <img src={blobUrl || loadingImg} className={`w-full h-full object-cover ${!blobUrl ? 'animate-[spin_3s_linear_infinite]' : ''}`} alt="" />
+  return <img src={blobUrl || loadingImg} className={`w-full h-full object-contain ${!blobUrl ? 'animate-[spin_3s_linear_infinite]' : ''}`} alt="" />
 }

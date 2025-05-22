@@ -3,3 +3,5 @@ release
 dist
 yarn.lock
 README.md
+ios
+android
