@@ -25,10 +25,14 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/webdav': {
-        target: 'http://192.168.125.116:8080',
-        // target: 'http://192.168.31.51:5005',
+        // target: 'http://192.168.125.116:8080',
+        target: 'http://192.168.31.51:5005',
         // changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/webdav/, '')
+        rewrite: (path) => path.replace(/^\/webdav/, ''),
+        headers: {
+          // 添加 Basic 认证头（用户名密码需 Base64 编码）
+          Authorization: 'Basic ' + Buffer.from('username:password').toString('base64')
+        }
       }
     }
   }

@@ -19,55 +19,48 @@ export default function Player({ url, index, realIndex, paused, getInstance, ...
   const artCtrl = useRef<Artplayer | null>(null)
   const [ready, setReady] = useState(false)
   useEffect(() => {
-    webdavClient.getFileContents(url).then((res: any) => {
-      const blob = new Blob([res], { type: 'video/mp4' })
-      const blobUrl = URL.createObjectURL(blob)
-      if (artRef.current) {
-        artCtrl.current = new Artplayer({
-          volume: 0.5,
-          isLive: false,
-          muted: false,
-          autoplay: false,
-          pip: true,
-          // autoSize: true,
-          autoMini: true,
-          screenshot: true,
-          setting: true,
-          loop: true,
-          flip: true,
-          playbackRate: true,
-          aspectRatio: true,
-          fullscreen: true,
-          fullscreenWeb: true,
-          subtitleOffset: true,
-          miniProgressBar: true,
-          mutex: true,
-          backdrop: true,
-          playsInline: true,
-          autoPlayback: true,
-          airplay: true,
-          // theme: '#23ade5',
-          lang: navigator.language.toLowerCase(),
-          // moreVideoAttr: {
-          //   crossOrigin: 'anonymous'
-          // },
-          url: blobUrl,
-          container: artRef.current
-        })
+    if (artRef.current) {
+      artCtrl.current = new Artplayer({
+        volume: 0.5,
+        isLive: false,
+        muted: false,
+        autoplay: false,
+        pip: true,
+        // autoSize: true,
+        autoMini: true,
+        screenshot: true,
+        setting: true,
+        loop: true,
+        flip: true,
+        playbackRate: true,
+        aspectRatio: true,
+        fullscreen: true,
+        fullscreenWeb: true,
+        subtitleOffset: true,
+        miniProgressBar: true,
+        mutex: true,
+        backdrop: true,
+        playsInline: true,
+        autoPlayback: true,
+        airplay: true,
+        // theme: '#23ade5',
+        lang: navigator.language.toLowerCase(),
+        url: '/webdav' + url,
+        container: artRef.current
+      })
 
-        artCtrl.current.on('play', () => {})
-        artCtrl.current.on('video:loadeddata', () => {})
-        artCtrl.current.on('video:loadedmetadata', () => {
-          setReady(true)
-        })
+      artCtrl.current.on('play', () => {})
+      artCtrl.current.on('video:loadeddata', () => {})
+      artCtrl.current.on('video:loadedmetadata', () => {
+        setReady(true)
+      })
 
-        artCtrl.current.on('ready', () => {})
+      artCtrl.current.on('ready', () => {})
 
-        if (getInstance && typeof getInstance === 'function') {
-          getInstance(artCtrl.current)
-        }
+      if (getInstance && typeof getInstance === 'function') {
+        getInstance(artCtrl.current)
       }
-    })
+    }
 
     return () => {
       if (artCtrl.current && artCtrl.current.destroy) {

@@ -20,37 +20,39 @@ export default function VideoCover({ url }: VideoCoverProps) {
     ]
 
     const tryGetCover = async () => {
-      try {
-        const range = ranges[retryCount]
-        const res = await webdavClient.getFileContents(url, { headers: { Range: range } })
-        const blob = new Blob([res as BlobPart], { type: 'video/mp4' })
-        const blobUrl = URL.createObjectURL(blob)
+      // try {
+      //   const range = ranges[retryCount]
+      //   // const res = await webdavClient.getFileContents(url, { headers: { Range: range } })
+      //   const res = await webdavClient.getFileContents(url)
+      //   const blob = new Blob([res as BlobPart], { type: 'video/mp4' })
+      //   const blobUrl = URL.createObjectURL(blob)
 
-        try {
-          const result = await getVideoCoverBase64({
-            source: blobUrl,
-            maxSide: 200
-          })
-          setCover(result.base64)
-          localStorage.setItem(`video_cover_${url}`, result.base64)
-        } catch (error) {
-          if (retryCount < maxRetries - 1) {
-            retryCount++
-            await tryGetCover()
-          } else {
-            setCover(ic_img100Img)
-          }
-        } finally {
-          URL.revokeObjectURL(blobUrl)
-        }
-      } catch (error) {
-        if (retryCount < maxRetries - 1) {
-          retryCount++
-          await tryGetCover()
-        } else {
-          setCover(ic_img100Img)
-        }
-      }
+      //   try {
+      // const result = await getVideoCoverBase64({
+      //   // source: blobUrl,
+      //   source: '/webdav' + url,
+      //   maxSide: 200
+      // })
+      // setCover(result.base64)
+      // localStorage.setItem(`video_cover_${url}`, result.base64)
+      //   } catch (error) {
+      //     // if (retryCount < maxRetries - 1) {
+      //     //   retryCount++
+      //     //   await tryGetCover()
+      //     // } else {
+      //     setCover(ic_img100Img)
+      //     // }
+      //   } finally {
+      //     URL.revokeObjectURL(blobUrl)
+      //   }
+      // } catch (error) {
+      // if (retryCount < maxRetries - 1) {
+      //   retryCount++
+      //   await tryGetCover()
+      // } else {
+      setCover(ic_img100Img)
+      // }
+      // }
     }
 
     tryGetCover()

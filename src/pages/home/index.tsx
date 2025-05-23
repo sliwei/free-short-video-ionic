@@ -17,12 +17,7 @@ import { DavFile, directoryState, filesState } from '@/store/video'
 import { steep } from '@/utils'
 
 export const webdavClient = createClient(
-  '/webdav', // 替换为你的 WebDAV 服务器地址
-  {
-    // authType: AuthType.Digest,
-    username: '1', // 替换为你的用户名
-    password: '1' // 替换为你的密码
-  }
+  '/webdav' // 替换为你的 WebDAV 服务器地址
 )
 
 export const imgType = ['png', 'jpg', 'jpeg']
@@ -128,29 +123,29 @@ export default function Index() {
 
   return (
     <IonPage>
-      <IonContent fullscreen scrollY={false}>
-        <IonToolbar>
-          {pathRoute.length > 1 && (
-            <IonButtons slot="start">
-              <IonButton
-                onClick={() =>
-                  folderFetch({
-                    path: pathRoute[pathRoute.length - 2],
-                    ret: true
-                  })
-                }
-              >
-                <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
-              </IonButton>
-            </IonButtons>
-          )}
-          {/* <IonButtons slot="end">
+      <IonToolbar>
+        {pathRoute.length > 1 && (
+          <IonButtons slot="start">
+            <IonButton
+              onClick={() =>
+                folderFetch({
+                  path: pathRoute[pathRoute.length - 2],
+                  ret: true
+                })
+              }
+            >
+              <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
+            </IonButton>
+          </IonButtons>
+        )}
+        {/* <IonButtons slot="end">
             <IonButton>
               <IonIcon slot="icon-only" ios={ellipsisHorizontal} md={ellipsisVertical}></IonIcon>
             </IonButton>
           </IonButtons> */}
-          <IonTitle className="whitespace-nowrap text-[14px] overflow-hidden text-ellipsis">{pathRoute[pathRoute.length - 1]?.replace(/\/../, '')?.replace(/\//, '') || 'webdav'}</IonTitle>
-        </IonToolbar>
+        <IonTitle className="whitespace-nowrap text-[14px] overflow-hidden text-ellipsis">{pathRoute[pathRoute.length - 1]?.replace(/\/../, '')?.replace(/\//, '') || 'webdav'}</IonTitle>
+      </IonToolbar>
+      <IonContent fullscreen scrollY={false}>
         <div className="overflow-auto h-full">
           {[...directory.value, ...files.value].length ? (
             <Virtuoso
@@ -180,7 +175,7 @@ export default function Index() {
                       if (item.type === 'directory') {
                         folderFetch({ path: item.filename })
                       } else {
-                        history.push(`/home/view?index=${_ - directory.value.length}`)
+                        history.push(`/view?index=${_ - directory.value.length}`)
                       }
                     }}
                     className="flex-1 whitespace-nowrap text-[14px] overflow-hidden text-ellipsis"

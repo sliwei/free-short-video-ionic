@@ -38,8 +38,14 @@ import My from './pages/my'
 setupIonicReact()
 
 const App: React.FC = () => {
+  // const pathRoute = useObjAtom(pathRouteState)
+  // const directory = useObjAtom(directoryState)
+  // const files = useObjAtom(filesState)
   useEffect(() => {
     if (import.meta.env.VITE_APP_ENV !== 'live') eruda.init()
+    // pathRoute.set([])
+    // directory.set([])
+    // files.set([])
   }, [])
 
   return (
@@ -47,10 +53,10 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
-            <Route exact path="/home">
+            <Route exact path="/">
               <Home />
             </Route>
-            <Route exact path="/home/view">
+            <Route exact path="/view">
               <View />
             </Route>
             <Route exact path="/history">
@@ -59,12 +65,9 @@ const App: React.FC = () => {
             <Route path="/my">
               <My />
             </Route>
-            <Route exact path="/">
-              <Redirect to="/home" />
-            </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom" className="tab-bar">
-            <IonTabButton tab="home" href="/home">
+            <IonTabButton tab="home" href="/">
               <IonIcon aria-hidden="true" icon={caretForwardCircleSharp} />
               <IonLabel>Video</IonLabel>
             </IonTabButton>
