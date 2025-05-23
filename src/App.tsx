@@ -28,7 +28,7 @@ import { IonReactRouter } from '@ionic/react-router'
 import eruda from 'eruda'
 import { calendarSharp, caretForwardCircleSharp, filmSharp, personCircleSharp } from 'ionicons/icons'
 import { useEffect } from 'react'
-import { Redirect, Route } from 'react-router-dom'
+import { Redirect, Route } from 'react-router'
 
 import History from './pages/history'
 import Home from './pages/home'
@@ -51,6 +51,43 @@ const App: React.FC = () => {
   return (
     <IonApp className="app">
       <IonReactRouter>
+        <IonRouterOutlet>
+          <Redirect exact path="/" to="/home" />
+          <Route path="/home" render={() => <Home />} exact={true} />
+          <Route path="/home/view" render={() => <View />} exact={true} />
+          {/* <Route path="/history" render={() => <History />} exact={true} />
+          <Route path="/my" render={() => <My />} exact={true} /> */}
+        </IonRouterOutlet>
+
+        {/* <IonTabs>
+          <IonRouterOutlet>
+            <Redirect exact path="/" to="/home" />
+            <Route path="/home" render={() => <Home />} exact={true} />
+            <Route path="/view" render={() => <View />} exact={true} />
+            <Route path="/history" render={() => <History />} exact={true} />
+            <Route path="/my" render={() => <My />} exact={true} />
+          </IonRouterOutlet>
+
+          <IonTabBar slot="bottom">
+            <IonTabButton tab="home" href="/home">
+              <IonIcon icon={caretForwardCircleSharp} />
+              <IonLabel>Video</IonLabel>
+            </IonTabButton>
+
+            <IonTabButton tab="history" href="/history">
+              <IonIcon icon={calendarSharp} />
+              <IonLabel>History</IonLabel>
+            </IonTabButton>
+
+            <IonTabButton tab="my" href="/my">
+              <IonIcon icon={personCircleSharp} />
+              <IonLabel>My</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        </IonTabs> */}
+      </IonReactRouter>
+      {/*     
+      <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/">
@@ -67,7 +104,7 @@ const App: React.FC = () => {
             </Route>
           </IonRouterOutlet>
           <IonTabBar slot="bottom" className="tab-bar">
-            <IonTabButton tab="home" href="/">
+            <IonTabButton tab="/" href="/">
               <IonIcon aria-hidden="true" icon={caretForwardCircleSharp} />
               <IonLabel>Video</IonLabel>
             </IonTabButton>
@@ -81,7 +118,7 @@ const App: React.FC = () => {
             </IonTabButton>
           </IonTabBar>
         </IonTabs>
-      </IonReactRouter>
+      </IonReactRouter> */}
     </IonApp>
   )
 }

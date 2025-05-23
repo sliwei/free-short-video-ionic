@@ -14,5 +14,10 @@ export type DavFile = {
   // index?: number
 }
 
-export const directoryState = atom<DavFile[]>([])
-export const filesState = atom<DavFile[]>([])
+const localPathRoute: string[] = JSON.parse(localStorage.localPathRoute || '["/"]')
+const localDirectory: DavFile[] = JSON.parse(localStorage.localDirectory || '[]')
+const localFiles: DavFile[] = JSON.parse(localStorage.localFiles || '[]')
+
+export const pathRouteState = atom<string[]>(localPathRoute)
+export const directoryState = atom<DavFile[]>(localDirectory)
+export const filesState = atom<DavFile[]>(localFiles)

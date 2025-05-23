@@ -13,7 +13,7 @@ export default function VideoCover({ url }: VideoCoverProps) {
   const [cover, setCover] = useState<string>(localStorage.getItem(`video_cover_${url}`) || '')
 
   useEffect(() => {
-    let retryCount = 0
+    const retryCount = 0
     const maxRetries = 3
     const ranges = [
       'bytes=0-2097152' // 2MB
@@ -58,5 +58,5 @@ export default function VideoCover({ url }: VideoCoverProps) {
     tryGetCover()
   }, [url])
 
-  return <img className={`w-full h-full object-cover ${!cover ? 'animate-[spin_3s_linear_infinite]' : ''}`} src={cover || loadingImg} alt="" />
+  return <img className={`w-full h-full object-contain ${!cover ? 'animate-[spin_3s_linear_infinite]' : ''}`} src={cover || loadingImg} alt="" />
 }

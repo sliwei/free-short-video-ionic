@@ -1,10 +1,9 @@
 import { IonButton, IonButtons, IonContent, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter, useIonViewDidLeave, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react'
-import { chevronBack, ellipsisHorizontal, ellipsisVertical } from 'ionicons/icons'
-import path from 'path'
-import { useEffect, useState } from 'react'
+import { chevronBack, grid, gridOutline, list, reorderThree, sync } from 'ionicons/icons'
+import { forwardRef, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
-import { useAsyncFn } from 'react-use'
-import { Virtuoso } from 'react-virtuoso'
+import { useAsyncFn, useUpdateEffect } from 'react-use'
+import { Virtuoso, VirtuosoGrid } from 'react-virtuoso'
 import { createClient } from 'webdav'
 
 import file_unknownImg from '@/assets/images/file-unknown.png'
@@ -13,26 +12,37 @@ import loadingImg from '@/assets/images/loading.png'
 import Images from '@/components/Images'
 import VideoCover from '@/components/VideoCover'
 import useObjAtom from '@/hooks/useObjAtom'
-import { DavFile, directoryState, filesState } from '@/store/video'
+import useObjState from '@/hooks/useObjState'
+import { DavFile, directoryState, filesState, pathRouteState } from '@/store/video'
 import { steep } from '@/utils'
 
 export const webdavClient = createClient(
   '/webdav' // 替换为你的 WebDAV 服务器地址
 )
 
-export const imgType = ['png', 'jpg', 'jpeg']
-export const videoType = ['mp4']
-export const directoryType = ['directory']
+// export const imgType = ['png', 'jpg', 'jpeg']
+export const imgType: string[] = []
+export const videoType: string[] = ['mp4']
+export const directoryType: string[] = ['directory']
 export const isImage = (type: string) => imgType.includes(type)
 export const isVideo = (type: string) => videoType.includes(type)
 export const isDirectory = (type: string) => directoryType.includes(type)
 export const isImgOrVideo = (type: string) => isImage(type) || isVideo(type)
+const layoutEnum: {
+  list: string
+  grid: string
+} = {
+  list: list,
+  grid: gridOutline
+}
 
 export default function Index() {
   const history = useHistory()
-  const [pathRoute, setPathRoute] = useState<string[]>([])
+  const pathRoute = useObjAtom(pathRouteState)
   const directory = useObjAtom(directoryState)
   const files = useObjAtom(filesState)
+  const layout = useObjState<'list' | 'grid'>(localStorage.localLayout || 'list')
+  const isGrid = layout.value === 'grid'
 
   useIonViewDidEnter(() => {})
   useIonViewDidLeave(() => {})
@@ -90,24 +100,10 @@ export default function Index() {
     }
   }
 
-  const [folderState, folderFetch] = useAsyncFn(async ({ path = '/', deep = false, ret = false }) => {
+  const [folderState, folderFetch] = useAsyncFn(async ({ path = '/', deep = false }) => {
     directory.set([])
     files.set([])
     await steep(0)
-    if (ret) {
-      // 如果是返回上一级目录
-      setPathRoute((prev: string[]) => {
-        const newPath = [...prev]
-        newPath.pop()
-        return newPath
-      })
-    } else {
-      setPathRoute((prev: string[]) => {
-        const newPath = [...prev]
-        newPath.push(path)
-        return newPath
-      })
-    }
     const data = await getMP4FilesFromVideoDirectory(path, deep)
     directory.set(data.directory)
     files.set(data.files)
@@ -115,51 +111,122 @@ export default function Index() {
   }, [])
 
   useEffect(() => {
-    folderFetch({ path: '/' })
-  }, [folderFetch])
+    folderFetch({ path: pathRoute.value[pathRoute.value.length - 1] || '/' })
+  }, [folderFetch, pathRoute.value])
 
-  // console.log('directory.value', directory.value)
-  // console.log('files.value', files.value)
+  useUpdateEffect(() => {
+    localStorage.localPathRoute = JSON.stringify(pathRoute.value)
+  }, [pathRoute.value])
+
+  useUpdateEffect(() => {
+    localStorage.localDirectory = JSON.stringify(directory.value)
+  }, [directory.value])
+
+  useUpdateEffect(() => {
+    localStorage.localFiles = JSON.stringify(files.value)
+  }, [files.value])
+
+  useUpdateEffect(() => {
+    localStorage.localLayout = layout.value
+  }, [layout.value])
 
   return (
     <IonPage>
-      <IonToolbar>
-        {pathRoute.length > 1 && (
+      <IonToolbar style={{ '--background': '#F7F7F7' }}>
+        {pathRoute.value.length > 1 && (
           <IonButtons slot="start">
             <IonButton
               onClick={() =>
-                folderFetch({
-                  path: pathRoute[pathRoute.length - 2],
-                  ret: true
+                pathRoute.set((prev: string[]) => {
+                  const newPath = [...prev]
+                  newPath.pop()
+                  return newPath
                 })
               }
             >
-              <IonIcon slot="icon-only" icon={chevronBack}></IonIcon>
+              <IonIcon className="text-[#666666]" slot="icon-only" icon={chevronBack}></IonIcon>
             </IonButton>
           </IonButtons>
         )}
-        {/* <IonButtons slot="end">
-            <IonButton>
-              <IonIcon slot="icon-only" ios={ellipsisHorizontal} md={ellipsisVertical}></IonIcon>
-            </IonButton>
-          </IonButtons> */}
-        <IonTitle className="whitespace-nowrap text-[14px] overflow-hidden text-ellipsis">{pathRoute[pathRoute.length - 1]?.replace(/\/../, '')?.replace(/\//, '') || 'webdav'}</IonTitle>
+        <IonButtons slot="end">
+          <IonButton
+            onClick={() => {
+              // localStorage.removeItem('localPathRoute')
+              // localStorage.removeItem('localDirectory')
+              // localStorage.removeItem('localFiles')
+              // localStorage.removeItem('localViewIndex')
+              // window.location.reload()
+              layout.set((v) => (v === 'list' ? 'grid' : 'list'))
+            }}
+          >
+            <IonIcon className={`text-[#666666] ${isGrid ? 'text-[24px]!' : 'text-[24px]!'}`} slot="icon-only" icon={layoutEnum[layout.value]}></IonIcon>
+          </IonButton>
+        </IonButtons>
+        <IonTitle className="whitespace-nowrap text-[14px] text-[#444] overflow-hidden text-ellipsis px-[10px]">{pathRoute.value[pathRoute.value.length - 1] || 'webdav'}</IonTitle>
       </IonToolbar>
       <IonContent fullscreen scrollY={false}>
         <div className="overflow-auto h-full">
           {[...directory.value, ...files.value].length ? (
-            <Virtuoso
-              style={{ height: '100%' }}
+            <VirtuosoGrid
+              className="h-full"
               data={[...directory.value, ...files.value]}
+              components={{
+                List: forwardRef(({ style, children, ...props }: any, ref) => (
+                  <div
+                    ref={ref}
+                    {...props}
+                    style={{
+                      display: 'flex',
+                      margin: isGrid ? '10px 0 0 0' : '5px 0',
+                      flexWrap: 'wrap',
+                      ...style
+                    }}
+                  >
+                    {children}
+                  </div>
+                )),
+                Item: ({ children, ...props }) => (
+                  <div
+                    {...props}
+                    className={!isGrid ? 'last:mb-[5px]!' : ''}
+                    style={{
+                      width: isGrid ? 'auto' : '100%',
+                      margin: isGrid ? '0 0 10px 10px' : '0',
+                      display: 'flex',
+                      flex: isGrid ? '0 0 calc(50% - 15px)' : 'none',
+                      alignContent: 'stretch',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    {children}
+                  </div>
+                )
+              }}
               itemContent={(_, item) => (
-                <div className="mx-[10px] p-[10px_0] flex justify-center items-center" key={item.basename}>
-                  <div className="w-[30px] h-[30px] mr-[5px]">
+                <div
+                  key={item.basename}
+                  onClick={() => {
+                    if (item.type === 'directory') {
+                      pathRoute.set((prev: string[]) => {
+                        const newPath = [...prev]
+                        newPath.includes(item.filename) || newPath.push(item.filename)
+                        return newPath
+                      })
+                    } else {
+                      const index = _ - directory.value.length
+                      localStorage.localViewIndex = index
+                      history.push(`/home/view?index=${index}`)
+                    }
+                  }}
+                  className={`w-full flex justify-center items-center relative ${!isGrid ? 'mx-[10px] py-[5px]' : 'flex-col'}`}
+                >
+                  <div className={`bg-[#f7f7f7] ${isGrid ? 'w-full h-[260px] flex justify-center items-center rounded-[6px]' : 'w-[30px] h-[30px] mr-[5px] rounded-[2px]'}`}>
                     {(() => {
                       if (item.type === 'directory') {
-                        return <img className="w-full h-full" src={icon_folderImg} />
+                        return <img className="w-full h-full object-contain" src={icon_folderImg} />
                       }
                       if (!item.url) {
-                        return <img className="w-full h-full" src={file_unknownImg} />
+                        return <img className="w-full h-full object-contain" src={file_unknownImg} />
                       }
                       if (isImage(item.type)) {
                         return <Images url={item.url} />
@@ -167,19 +234,10 @@ export default function Index() {
                       if (isVideo(item.type)) {
                         return <VideoCover url={item.url || ''} />
                       }
-                      return <img className="w-full h-full" src={file_unknownImg} />
+                      return <img className="w-full h-full object-contain" src={file_unknownImg} />
                     })()}
                   </div>
-                  <div
-                    onClick={() => {
-                      if (item.type === 'directory') {
-                        folderFetch({ path: item.filename })
-                      } else {
-                        history.push(`/view?index=${_ - directory.value.length}`)
-                      }
-                    }}
-                    className="flex-1 whitespace-nowrap text-[14px] overflow-hidden text-ellipsis"
-                  >
+                  <div className={`text-[14px] text-[#444] whitespace-nowrap overflow-hidden text-ellipsis ${isGrid ? 'absolute bottom-[5px] px-[10px] w-full mt-[5px] text-center' : 'flex-1'}`}>
                     {item.basename}
                   </div>
                 </div>

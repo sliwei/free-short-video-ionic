@@ -1,8 +1,9 @@
 import 'swiper/css'
 
-import { IonContent, IonPage, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react'
+import { IonContent, IonFab, IonIcon, IonPage, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react'
+import { chevronBack } from 'ionicons/icons'
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import { Virtual } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 
@@ -17,9 +18,10 @@ import { isImage, isVideo } from '..'
 export default function Index() {
   const location = useLocation()
   const queryParams = new URLSearchParams(location.search)
-  const [realIndex, setRealIndex] = useState(Number(queryParams.get('index')))
+  const [realIndex, setRealIndex] = useState(localStorage.localViewIndex || Number(queryParams.get('index')))
   const files = useObjAtom(filesState)
   const [paused, setPaused] = useState(false)
+  const history = useHistory()
 
   useIonViewDidEnter(() => {
     setPaused(false)
@@ -30,7 +32,7 @@ export default function Index() {
   })
 
   const onSwiperInit = (swiper: any) => {
-    swiper.slideTo(Number(queryParams.get('index')), 0, false)
+    swiper.slideTo(realIndex, 0, false)
   }
 
   return (
@@ -51,12 +53,22 @@ export default function Index() {
               navigation={true}
               virtual
               onSlideChange={(e) => {
+                // 修改地址栏参数index={e.realIndex}
+                localStorage.localViewIndex = e.realIndex
                 setRealIndex(e.realIndex)
               }}
             >
               {files.value.map((item, index) => (
                 <SwiperSlide key={index} virtualIndex={index} className="">
                   <div className="w-full h-full bg-black">
+                    <IonFab className="z-[9999]">
+                      <div className="w-full h-[40px] flex justify-center items-center mt-[10px]">
+                        <div onClick={() => history.goBack()} className="w-[40px] h-[40px] flex justify-center items-center active:scale-90 transition cursor-pointer">
+                          <IonIcon className="text-[30px] text-white" icon={chevronBack} />
+                        </div>
+                        <div className="text-white text-[14px] bottom-[5px] left-[5px]">{item.indexTitle}</div>
+                      </div>
+                    </IonFab>
                     {(() => {
                       if (!item.url) {
                         return (
@@ -86,7 +98,6 @@ export default function Index() {
                         </div>
                       )
                     })()}
-                    <div className="absolute z-10 text-white text-[14px] bottom-[5px] left-[5px]">{item.indexTitle}</div>
                   </div>
                 </SwiperSlide>
               ))}
