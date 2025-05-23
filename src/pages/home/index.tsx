@@ -218,9 +218,9 @@ export default function Index() {
                       history.push(`/home/view?index=${index}`)
                     }
                   }}
-                  className={`w-full flex justify-center items-center relative ${!isGrid ? 'mx-[10px] py-[5px]' : 'flex-col'}`}
+                  className={`w-full flex justify-center items-center relative overflow-hidden ${!isGrid ? 'mx-[10px] py-[5px]' : 'rounded-[6px] flex-col'}`}
                 >
-                  <div className={`bg-[#f7f7f7] ${isGrid ? 'w-full h-[260px] flex justify-center items-center rounded-[6px]' : 'w-[30px] h-[30px] mr-[5px] rounded-[2px]'}`}>
+                  <div className={`bg-[#f7f7f7] ${isGrid ? 'w-full h-[260px] flex justify-center items-center' : 'w-[30px] h-[30px] mr-[5px] rounded-[4px] overflow-hidden'}`}>
                     {(() => {
                       if (item.type === 'directory') {
                         return <img className="w-full h-full object-contain" src={icon_folderImg} />
@@ -237,7 +237,9 @@ export default function Index() {
                       return <img className="w-full h-full object-contain" src={file_unknownImg} />
                     })()}
                   </div>
-                  <div className={`text-[14px] text-[#444] whitespace-nowrap overflow-hidden text-ellipsis ${isGrid ? 'absolute bottom-[5px] px-[10px] w-full mt-[5px] text-center' : 'flex-1'}`}>
+                  <div
+                    className={`text-[14px] whitespace-nowrap overflow-hidden text-ellipsis ${isGrid ? 'absolute bottom-0 px-[10px] w-full text-center text-[#333] bg-white/40 py-[5px] backdrop-blur-sm' : 'flex-1 text-[#444]'}`}
+                  >
                     {item.basename}
                   </div>
                 </div>
@@ -247,7 +249,7 @@ export default function Index() {
             <>
               {folderState.loading ? (
                 <div className="text-[14px] text-center py-[10px] flex justify-center items-center">
-                  <img className="w-[30px] h-[30px] animate-[spin_3s_linear_infinite]" src={loadingImg} alt="" />
+                  <img className="w-[30px] h-[30px] animate-[spin_5s_linear_infinite]" src={loadingImg} alt="" />
                 </div>
               ) : (
                 <div className="text-[14px] text-center py-[10px]">Nothing!</div>

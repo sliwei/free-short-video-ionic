@@ -1,7 +1,7 @@
 // 获取封面
 export const getVideoCoverBase64 = ({
   source,
-  currentTime = 0.1, // 默认获取视频开始 0.1 秒的帧
+  currentTime = 1, // 默认获取视频开始 0.1 秒的帧
   timeout = 5000, // 减少超时时间，因为只获取部分数据
   maxSide = 512
 }: {
