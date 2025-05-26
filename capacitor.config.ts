@@ -1,11 +1,11 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'ionic.react',
+  appId: 'com.awei.iovideo',
   appName: 'ionic-react',
   webDir: 'dist',
   server: {
-    url: 'http://192.168.31.93:8100',
+    url: 'http://192.168.125.116:8100',
     cleartext: true
   }
 }

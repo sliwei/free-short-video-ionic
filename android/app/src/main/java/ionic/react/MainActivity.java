@@ -1,4 +1,4 @@
-package ionic.react;
+package com.awei.iovideo;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -2,6 +2,27 @@
 http://ionicframework.com/docs/theming/ */
 @import 'tailwindcss';
 
+/* 确保内容在安全区域内 */
+ion-content {
+  /* --padding-top: var(--ion-safe-area-top, 0); */
+  /* --padding-bottom: var(--ion-safe-area-bottom, 0);
+  --padding-start: var(--ion-safe-area-left, 0);
+  --padding-end: var(--ion-safe-area-right, 0); */
+}
+
+/* 工具栏安全区域处理 */
+ion-toolbar {
+  padding-top: var(--ion-safe-area-top, 0);
+}
+
+ion-header {
+  padding-top: var(--ion-safe-area-top, 0);
+}
+
+ion-footer {
+  padding-bottom: var(--ion-safe-area-bottom, 0);
+}
+
 .tab-bar {
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);

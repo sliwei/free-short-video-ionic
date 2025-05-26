@@ -1,4 +1,4 @@
-import { IonButton, IonButtons, IonContent, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter, useIonViewDidLeave, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react'
+import { IonButton, IonButtons, IonContent, IonFooter, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter, useIonViewDidLeave, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react'
 import { chevronBack, grid, gridOutline, list, reorderThree, sync } from 'ionicons/icons'
 import { forwardRef, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
@@ -260,6 +260,7 @@ export default function Index() {
           )}
         </div>
       </IonContent>
+      <IonFooter></IonFooter>
     </IonPage>
   )
 }

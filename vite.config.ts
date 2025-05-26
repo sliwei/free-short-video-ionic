@@ -8,7 +8,7 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), legacy()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     // https://cn.vitejs.dev/config/#resolve-alias
     alias: {

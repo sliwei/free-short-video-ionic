@@ -42,7 +42,7 @@ const App: React.FC = () => {
   // const directory = useObjAtom(directoryState)
   // const files = useObjAtom(filesState)
   useEffect(() => {
-    if (import.meta.env.VITE_APP_ENV !== 'live') eruda.init()
+    // if (import.meta.env.VITE_APP_ENV !== 'live') eruda.init()
     // pathRoute.set([])
     // directory.set([])
     // files.set([])

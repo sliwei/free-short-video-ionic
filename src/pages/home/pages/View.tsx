@@ -1,6 +1,6 @@
 import 'swiper/css'
 
-import { IonContent, IonFab, IonIcon, IonPage, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react'
+import { IonContent, IonFab, IonFooter, IonHeader, IonIcon, IonPage, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react'
 import { chevronBack } from 'ionicons/icons'
 import { useState } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
@@ -38,6 +38,7 @@ export default function Index() {
   return (
     <>
       <IonPage id="main-content">
+        <IonHeader></IonHeader>
         <IonContent fullscreen>
           <div className="h-full overflow-hidden">
             <Swiper
@@ -104,6 +105,7 @@ export default function Index() {
             </Swiper>
           </div>
         </IonContent>
+        <IonFooter></IonFooter>
       </IonPage>
     </>
   )
