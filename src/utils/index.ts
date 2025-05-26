@@ -1,143 +1,172 @@
 // 获取封面
-export const getVideoCoverBase64 = ({
-  source,
-  currentTime = 1, // 默认获取视频开始 0.1 秒的帧
-  timeout = 5000, // 减少超时时间，因为只获取部分数据
-  maxSide = 512
-}: {
-  source: string | File
-  currentTime?: number
-  timeout?: number
-  maxSide?: number
-}): Promise<{ width: number; height: number; base64: string }> => {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video')
-    video.setAttribute('crossOrigin', 'anonymous')
-    video.setAttribute('preload', 'metadata') // 只预加载元数据
-    video.setAttribute('playsinline', 'true') // 添加 playsinline 属性
-    video.muted = true // 静音播放
+export class VideoCoverExtractor {
+  private video: HTMLVideoElement
+  private timeoutId: number | null = null
+  private source: string | File
+  private currentTime: number
+  private timeout: number
+  private maxSide: number
+  private objectUrl: string | null = null
+  private isCancelled = false
+  private resolvePromise: ((value: { width: number; height: number; base64: string }) => void) | null = null
+  private rejectPromise: ((reason?: any) => void) | null = null
+  private canvas: HTMLCanvasElement | null = null
 
-    // 定义清理函数
-    let cleanup = () => {
-      clearTimeout(timeoutId)
-      video.removeEventListener('error', handleError)
-      video.removeEventListener('loadeddata', handleLoadedData)
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      video.removeEventListener('canplay', handleCanPlay)
-      video.removeEventListener('seeked', handleSeeked)
-      video.pause()
-      video.src = ''
-    }
+  constructor({ source, currentTime = 1, timeout = 5000, maxSide = 0 }: { source: string | File; currentTime?: number; timeout?: number; maxSide?: number }) {
+    this.source = source
+    this.currentTime = currentTime
+    this.timeout = timeout
+    this.maxSide = maxSide
 
-    // 根据输入类型设置视频源
-    if (source instanceof File) {
-      // 如果是File对象，创建URL
-      const objectUrl = URL.createObjectURL(source)
-      video.setAttribute('src', objectUrl)
+    // 创建视频元素
+    this.video = document.createElement('video')
+    this.video.setAttribute('crossOrigin', 'anonymous')
+    this.video.setAttribute('preload', 'metadata')
+    this.video.setAttribute('playsinline', 'true')
+    this.video.muted = true
 
-      // 扩展清理函数以释放URL
-      const originalCleanup = cleanup
-      cleanup = () => {
-        URL.revokeObjectURL(objectUrl)
-        originalCleanup()
+    // 创建可重用的 canvas
+    this.canvas = document.createElement('canvas')
+  }
+
+  public getBase64(): Promise<{ width: number; height: number; base64: string }> {
+    return new Promise((resolve, reject) => {
+      if (this.isCancelled) {
+        reject('已取消')
+        return
       }
-    } else {
-      // 如果是URL字符串
-      video.setAttribute('src', source)
+
+      this.resolvePromise = resolve
+      this.rejectPromise = reject
+
+      // 设置视频源
+      if (this.source instanceof File) {
+        this.objectUrl = URL.createObjectURL(this.source)
+        this.video.setAttribute('src', this.objectUrl)
+      } else {
+        this.video.setAttribute('src', this.source)
+      }
+
+      // 设置超时处理
+      this.timeoutId = window.setTimeout(() => {
+        this.cleanup()
+        reject('获取视频封面超时')
+      }, this.timeout)
+
+      // 只监听必要的事件
+      this.video.addEventListener('error', this.handleError)
+      this.video.addEventListener('loadedmetadata', this.handleLoadedMetadata)
+      this.video.addEventListener('seeked', this.handleSeeked)
+
+      // 开始加载视频
+      this.video.load()
+    })
+  }
+
+  public cancel(): void {
+    this.isCancelled = true
+    if (this.rejectPromise) {
+      this.rejectPromise('操作已取消')
+    }
+    this.cleanup()
+  }
+
+  private cleanup = (): void => {
+    if (this.timeoutId !== null) {
+      clearTimeout(this.timeoutId)
+      this.timeoutId = null
     }
 
-    // 设置超时处理
-    const timeoutId = setTimeout(() => {
-      cleanup()
-      reject('获取视频封面超时')
-    }, timeout)
+    this.video.removeEventListener('error', this.handleError)
+    this.video.removeEventListener('loadedmetadata', this.handleLoadedMetadata)
+    this.video.removeEventListener('seeked', this.handleSeeked)
 
-    const handleError = (e: any) => {
-      cleanup()
-      reject('加载视频失败')
+    this.video.pause()
+    this.video.src = ''
+
+    if (this.objectUrl) {
+      URL.revokeObjectURL(this.objectUrl)
+      this.objectUrl = null
     }
 
-    // 处理视频元数据加载完成
-    const handleLoadedMetadata = () => {
-      try {
-        // 设置视频时间点
-        video.currentTime = Math.min(currentTime, video.duration || 0.1)
-      } catch (error) {
-        console.error('设置视频时间点失败:', error)
-        cleanup()
-        reject('设置视频时间点失败')
+    this.resolvePromise = null
+    this.rejectPromise = null
+  }
+
+  private handleError = (e: Event): void => {
+    if (this.isCancelled) return
+    this.cleanup()
+    if (this.rejectPromise) {
+      this.rejectPromise('加载视频失败')
+    }
+  }
+
+  private handleLoadedMetadata = (): void => {
+    if (this.isCancelled) return
+    try {
+      this.video.currentTime = Math.min(this.currentTime, this.video.duration || 0.1)
+    } catch (error) {
+      console.error('设置视频时间点失败:', error)
+      this.cleanup()
+      if (this.rejectPromise) {
+        this.rejectPromise('设置视频时间点失败')
       }
     }
+  }
 
-    // 处理视频数据加载完成
-    const handleLoadedData = () => {
-      try {
-        // 设置视频时间点
-        video.currentTime = Math.min(currentTime, video.duration || 0.1)
-      } catch (error) {
-        console.error('设置视频时间点失败:', error)
-        cleanup()
-        reject('设置视频时间点失败')
+  private handleSeeked = (): void => {
+    if (this.isCancelled) return
+    this.captureFrame()
+  }
+
+  private captureFrame = (): void => {
+    if (this.isCancelled) return
+
+    try {
+      if (!this.canvas) {
+        this.canvas = document.createElement('canvas')
       }
-    }
 
-    // 处理视频可以播放
-    const handleCanPlay = () => {
-      try {
-        // 设置视频时间点
-        video.currentTime = Math.min(currentTime, video.duration || 0.1)
-      } catch (error) {
-        console.error('设置视频时间点失败:', error)
-        cleanup()
-        reject('设置视频时间点失败')
+      const width = this.video.videoWidth || 300
+      const height = this.video.videoHeight || 200
+      let maxSide = this.maxSide
+
+      if (maxSide <= 0) {
+        maxSide = Math.max(width, height)
       }
-    }
 
-    // 处理视频跳转完成
-    const handleSeeked = () => {
-      captureFrame()
-    }
+      const ratio = width > height ? maxSide / width : maxSide / height
+      this.canvas.width = width * ratio
+      this.canvas.height = height * ratio
 
-    // 捕获视频帧
-    const captureFrame = () => {
-      try {
-        const canvas = document.createElement('canvas')
-        const width = video.videoWidth || 300
-        const height = video.videoHeight || 200
-        const ratio = width > height ? maxSide / width : maxSide / height
-        canvas.width = width * ratio
-        canvas.height = height * ratio
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const dataURL = canvas.toDataURL('image/jpeg', 0.8) // 降低图片质量以减小大小
-          cleanup()
-          resolve({
+      const ctx = this.canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height)
+        const dataURL = this.canvas.toDataURL('image/jpeg', 1)
+
+        if (this.resolvePromise) {
+          this.resolvePromise({
             width,
             height,
             base64: dataURL
           })
-        } else {
-          cleanup()
-          reject('无法获取画布上下文')
         }
-      } catch (error) {
-        console.error('捕获视频帧失败:', error)
-        cleanup()
-        reject(error)
+
+        this.cleanup()
+      } else {
+        this.cleanup()
+        if (this.rejectPromise) {
+          this.rejectPromise('无法获取画布上下文')
+        }
+      }
+    } catch (error) {
+      console.error('捕获视频帧失败:', error)
+      this.cleanup()
+      if (this.rejectPromise) {
+        this.rejectPromise(error)
       }
     }
-
-    // 添加多个事件监听，提高成功率
-    video.addEventListener('error', handleError)
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    video.addEventListener('loadeddata', handleLoadedData)
-    video.addEventListener('canplay', handleCanPlay)
-    video.addEventListener('seeked', handleSeeked)
-
-    // 开始加载视频
-    video.load()
-  })
+  }
 }
 
 // 延时函数

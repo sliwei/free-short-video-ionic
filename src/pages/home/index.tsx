@@ -36,6 +36,8 @@ const layoutEnum: {
   grid: gridOutline
 }
 
+const isCoverDirectory = (basename: string) => basename === '_cover' || basename === '封面' || basename === 'cover'
+
 export default function Index() {
   const history = useHistory()
   const pathRoute = useObjAtom(pathRouteState)
@@ -61,7 +63,7 @@ export default function Index() {
         for (const item of contents as DavFile[]) {
           if (item.filename !== currentPath && item.basename !== '.DS_Store') {
             const type = item.basename.split('.').pop() || 'file'
-            if (item.type === 'directory') {
+            if (item.type === 'directory' && !isCoverDirectory(item.basename)) {
               directory.push({
                 ...item,
                 type: 'directory'
@@ -238,7 +240,7 @@ export default function Index() {
                     })()}
                   </div>
                   <div
-                    className={`text-[14px] whitespace-nowrap overflow-hidden text-ellipsis ${isGrid ? 'absolute bottom-0 px-[10px] w-full text-center text-[#333] bg-white/40 py-[5px] backdrop-blur-sm' : 'flex-1 text-[#444]'}`}
+                    className={`text-[14px] whitespace-nowrap overflow-hidden text-ellipsis ${isGrid ? 'absolute z-20 bottom-0 px-[10px] w-full text-center text-[#333] bg-white/40 py-[5px] backdrop-blur-sm' : 'flex-1 text-[#444]'}`}
                   >
                     {item.basename}
                   </div>
